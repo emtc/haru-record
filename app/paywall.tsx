@@ -17,9 +17,8 @@ import { ACCENT_GRADIENT, BG_GRADIENT, CARD_SHADOW, COLORS, RADIUS } from '../co
 import { getOfferings, purchasePackage, restorePurchases } from '../lib/purchases';
 import { useSubscription } from '../lib/subscriptionContext';
 
-// ↓ 公開前にプライバシーポリシー・利用規約のURLを設定してください
-const PRIVACY_URL = 'https://example.com/privacy';
-const TERMS_URL   = 'https://example.com/terms';
+const PRIVACY_URL = 'https://emtc.github.io/haru-record/privacy.html';
+const TERMS_URL   = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 
 const COMPARE_ROWS = [
   { feature: '記録の作成',           free: '◯',      premium: '◯'   },

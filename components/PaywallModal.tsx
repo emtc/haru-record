@@ -15,8 +15,8 @@ import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { ACCENT_GRADIENT, CARD_SHADOW, COLORS, RADIUS } from '../constants/theme';
 import { getOfferings, purchasePackage, restorePurchases } from '../lib/purchases';
 
-const PRIVACY_URL = 'https://example.com/privacy';
-const TERMS_URL   = 'https://example.com/terms';
+const PRIVACY_URL = 'https://emtc.github.io/haru-record/privacy.html';
+const TERMS_URL   = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 import { useSubscription } from '../lib/subscriptionContext';
 
 const COMPARE_ROWS = [
