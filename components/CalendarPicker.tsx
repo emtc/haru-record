@@ -3,8 +3,9 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { ACCENT_GRADIENT, COLORS, RADIUS, CARD_SHADOW } from '../constants/theme';
+import { t } from '../lib/i18n';
 
-const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
+const WEEKDAY_KEYS = ['weekdays.sun', 'weekdays.mon', 'weekdays.tue', 'weekdays.wed', 'weekdays.thu', 'weekdays.fri', 'weekdays.sat'];
 const NOW_YEAR = new Date().getFullYear();
 const YEAR_RANGE = Array.from({ length: 12 }, (_, i) => NOW_YEAR - 4 + i);
 
@@ -53,8 +54,8 @@ export function CalendarPicker({ value, onChange }: { value: string; onChange: (
       </View>
 
       <View style={styles.calWeekRow}>
-        {WEEKDAYS.map((d, i) => (
-          <Text key={d} style={[styles.calWeekDay, i === 0 && styles.sun, i === 6 && styles.sat]}>{d}</Text>
+        {WEEKDAY_KEYS.map((key, i) => (
+          <Text key={key} style={[styles.calWeekDay, i === 0 && styles.sun, i === 6 && styles.sat]}>{t(key)}</Text>
         ))}
       </View>
 
@@ -84,7 +85,7 @@ export function CalendarPicker({ value, onChange }: { value: string; onChange: (
         <View style={styles.yearOverlay}>
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setYearPickerVisible(false)} />
           <View style={styles.yearSheet}>
-            <Text style={styles.yearSheetTitle}>年を選ぶ</Text>
+            <Text style={styles.yearSheetTitle}>{t('calendar.year_title')}</Text>
             <View style={styles.yearGrid}>
               {YEAR_RANGE.map(y => {
                 const isActive = y === year;

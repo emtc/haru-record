@@ -1,10 +1,7 @@
 import React, { useEffect } from 'react';
-import { Platform } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { router } from 'expo-router';
 import MobileAds, { AppOpenAd, AdEventType } from 'react-native-google-mobile-ads';
-import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
 import { openDb, getHasSeenOnboarding, getLastAdShownDate, setLastAdShownDate } from '../lib/database';
 import { initPurchases } from '../lib/purchases';
 import { SubscriptionProvider, useSubscription } from '../lib/subscriptionContext';
@@ -14,19 +11,18 @@ export { ErrorBoundary } from 'expo-router';
 SplashScreen.preventAutoHideAsync();
 
 const APP_OPEN_AD_UNIT_ID = 'ca-app-pub-2989531368920692/7457350049';
-const AD_INTERVAL_DAYS = 3; // 何日おきに表示するか
+const AD_INTERVAL_DAYS = 3;
 
 export default function RootLayout() {
   useEffect(() => {
     async function init() {
       openDb();
       initPurchases();
-      // ATT ダイアログ（iOS のみ）— AdMob 初期化より先に実行
-      if (Platform.OS === 'ios') {
-        await requestTrackingPermissionsAsync();
-      }
-      // AdMob 初期化（ATT 結果を自動反映）
-      await MobileAds().initialize();
+      // 初期化と最低表示時間を並行して待つ（長い方に合わせる）
+      await Promise.all([
+        MobileAds().initialize(),
+        new Promise(resolve => setTimeout(resolve, 500)),
+      ]);
       await SplashScreen.hideAsync();
       if (!getHasSeenOnboarding()) {
         router.replace('/onboarding');
@@ -57,7 +53,6 @@ function StartupAd() {
   useEffect(() => {
     if (isLoading || isPremium) return;
 
-    // 前回表示から AD_INTERVAL_DAYS 日未満なら表示しない
     const lastShown = getLastAdShownDate();
     if (lastShown) {
       const daysSince = (Date.now() - new Date(lastShown).getTime()) / (1000 * 60 * 60 * 24);
@@ -73,9 +68,7 @@ function StartupAd() {
       setLastAdShownDate(new Date().toISOString());
     });
 
-    const unsubError = ad.addAdEventListener(AdEventType.ERROR, () => {
-      // 広告取得失敗は無視してアプリを通常通り起動
-    });
+    const unsubError = ad.addAdEventListener(AdEventType.ERROR, () => {});
 
     ad.load();
 

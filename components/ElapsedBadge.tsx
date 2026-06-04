@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, RADIUS } from '../constants/theme';
 import { ElapsedTime } from '../types';
+import { t } from '../lib/i18n';
 
 interface Props {
   elapsed: ElapsedTime;
@@ -11,26 +12,29 @@ interface Props {
 }
 
 export default function ElapsedBadge({ elapsed, compact = false, gradient }: Props) {
+  const mo = t('elapsed.months_unit');
+  const d = t('elapsed.days_unit');
+
   if (compact) {
     return (
       <View style={styles.compactContainer}>
-        <Text style={styles.compactLabel}>経過</Text>
+        <Text style={styles.compactLabel}>{t('elapsed.label')}</Text>
         <View style={styles.compactRow}>
           {elapsed.months > 0 ? (
             <>
               <Text style={styles.compactNum}>{elapsed.months}</Text>
-              <Text style={styles.compactUnit}>ヶ月</Text>
+              <Text style={styles.compactUnit}>{mo}</Text>
               {elapsed.days > 0 && (
                 <>
                   <Text style={styles.compactNum}>{elapsed.days}</Text>
-                  <Text style={styles.compactUnit}>日</Text>
+                  <Text style={styles.compactUnit}>{d}</Text>
                 </>
               )}
             </>
           ) : (
             <>
               <Text style={styles.compactNum}>{elapsed.totalDays}</Text>
-              <Text style={styles.compactUnit}>日</Text>
+              <Text style={styles.compactUnit}>{d}</Text>
             </>
           )}
         </View>
@@ -45,23 +49,23 @@ export default function ElapsedBadge({ elapsed, compact = false, gradient }: Pro
       end={{ x: 1, y: 1 }}
       style={styles.badge}
     >
-      <Text style={styles.badgeLabel}>経過</Text>
+      <Text style={styles.badgeLabel}>{t('elapsed.label')}</Text>
       <View style={styles.badgeRow}>
         {elapsed.months > 0 ? (
           <>
             <Text style={styles.bigNum}>{elapsed.months}</Text>
-            <Text style={styles.unit}>ヶ月</Text>
+            <Text style={styles.unit}>{mo}</Text>
             {elapsed.days > 0 && (
               <>
                 <Text style={styles.midNum}>{elapsed.days}</Text>
-                <Text style={styles.unit}>日</Text>
+                <Text style={styles.unit}>{d}</Text>
               </>
             )}
           </>
         ) : (
           <>
             <Text style={styles.bigNum}>{elapsed.totalDays}</Text>
-            <Text style={styles.unit}>日</Text>
+            <Text style={styles.unit}>{d}</Text>
           </>
         )}
       </View>

@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 // RevenueCat ダッシュボード → Apps → API keys で取得したキーを設定してください
 // iOS:     app.revenuecat.com → プロジェクト → iOS app → API keys → Public app-specific keys
 // Android: app.revenuecat.com → プロジェクト → Android app → API keys
-const RC_IOS_KEY     = 'appl_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+const RC_IOS_KEY     = 'appl_gTYgmmwQhUPodJmBhUMgNAXSJXt';
 const RC_ANDROID_KEY = 'goog_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
 
 const API_KEY = Platform.select({ ios: RC_IOS_KEY, android: RC_ANDROID_KEY }) ?? '';
@@ -55,4 +55,13 @@ export async function purchasePackage(pkg: any) {
 export async function restorePurchases() {
   if (!Purchases) throw new Error('購入機能はリリースビルドでのみ利用できます。');
   return Purchases.restorePurchases();
+}
+
+
+export function addCustomerInfoUpdateListener(callback: (isPremium: boolean) => void): () => void {
+  if (!Purchases) return () => {};
+  const listener = Purchases.addCustomerInfoUpdateListener((info: any) => {
+    callback(info.entitlements.active[ENTITLEMENT_ID] !== undefined);
+  });
+  return () => listener?.remove?.() ?? listener?.();
 }

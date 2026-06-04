@@ -16,16 +16,10 @@ import { router } from 'expo-router';
 import { ACCENT_GRADIENT, BG_GRADIENT, CARD_SHADOW, COLORS, RADIUS } from '../constants/theme';
 import { getOfferings, purchasePackage, restorePurchases } from '../lib/purchases';
 import { useSubscription } from '../lib/subscriptionContext';
+import { t } from '../lib/i18n';
 
 const PRIVACY_URL = 'https://emtc.github.io/haru-record/privacy.html';
 const TERMS_URL   = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
-
-const COMPARE_ROWS = [
-  { feature: '記録の作成',           free: '◯',      premium: '◯'   },
-  { feature: '写真の追加',           free: '3枚まで', premium: '無制限' },
-  { feature: '写真のBefore/After比較', free: '—', premium: '◯' },
-  { feature: '広告',                free: 'あり',   premium: 'なし' },
-];
 
 type Plan = 'yearly' | 'monthly';
 
@@ -44,9 +38,16 @@ export default function PaywallScreen() {
   const yearlyPkg   = offerings?.current?.annual;
   const selectedPkg = plan === 'yearly' ? yearlyPkg : monthlyPkg;
 
+  const compareRows = [
+    { feature: t('paywall.row_records'), free: t('paywall.free_records'), premium: t('paywall.premium_records') },
+    { feature: t('paywall.row_photos'),  free: t('paywall.free_photos'),  premium: t('paywall.premium_photos')  },
+    { feature: t('paywall.row_compare'), free: t('paywall.free_compare'), premium: t('paywall.premium_compare') },
+    { feature: t('paywall.row_ads'),     free: t('paywall.free_ads'),     premium: t('paywall.premium_ads')     },
+  ];
+
   async function handlePurchase() {
     if (!selectedPkg) {
-      Alert.alert('読み込み中', '購入情報を取得しています。しばらくお待ちください。');
+      Alert.alert(t('paywall.loading_title'), t('paywall.loading_body'));
       return;
     }
     setLoading(true);
@@ -56,7 +57,7 @@ export default function PaywallScreen() {
       router.back();
     } catch (e: any) {
       if (!e?.userCancelled) {
-        Alert.alert('購入エラー', e?.message ?? '購入に失敗しました。');
+        Alert.alert(t('paywall.error_title'), e?.message ?? t('paywall.error_body'));
       }
     } finally {
       setLoading(false);
@@ -68,10 +69,10 @@ export default function PaywallScreen() {
     try {
       await restorePurchases();
       await refresh();
-      Alert.alert('完了', '購入情報を復元しました。');
+      Alert.alert(t('paywall.done_title'), t('paywall.restore_ok'));
       router.back();
     } catch {
-      Alert.alert('エラー', '復元に失敗しました。');
+      Alert.alert(t('paywall.restore_err_title'), t('paywall.restore_err'));
     } finally {
       setLoading(false);
     }
@@ -81,11 +82,9 @@ export default function PaywallScreen() {
     <View style={styles.root}>
       <LinearGradient colors={BG_GRADIENT} style={StyleSheet.absoluteFill} />
 
-      {/* Close button — safe area 考慮 */}
       <Pressable
         style={[styles.closeBtn, { top: insets.top + 8 }]}
         onPress={() => router.back()}
-        accessibilityLabel="閉じる"
         accessibilityRole="button"
       >
         <Feather name="x" size={18} color={COLORS.ink2} />
@@ -108,23 +107,23 @@ export default function PaywallScreen() {
           <MaterialCommunityIcons name="crown" size={34} color="#fff" />
         </LinearGradient>
 
-        <Text style={styles.title}>プレミアムプラン</Text>
-        <Text style={styles.subtitle}>美容記録をもっと自由に</Text>
+        <Text style={styles.title}>{t('paywall.title')}</Text>
+        <Text style={styles.subtitle}>{t('paywall.subtitle')}</Text>
 
         {/* Comparison table */}
         <View style={styles.compareCard}>
           <View style={[styles.compareRow, styles.compareHeader]}>
             <View style={styles.compareFeatureCell}>
-              <Text style={styles.compareHeaderText}>機能</Text>
+              <Text style={styles.compareHeaderText}>{t('paywall.feature_col')}</Text>
             </View>
             <View style={styles.compareValueCell}>
-              <Text style={styles.compareHeaderText}>無料</Text>
+              <Text style={styles.compareHeaderText}>{t('paywall.free_col')}</Text>
             </View>
             <View style={styles.compareValueCell}>
-              <Text style={styles.compareHeaderTextAccent}>プレミアム</Text>
+              <Text style={styles.compareHeaderTextAccent}>{t('paywall.premium_col')}</Text>
             </View>
           </View>
-          {COMPARE_ROWS.map((row, i) => (
+          {compareRows.map((row, i) => (
             <View key={i} style={[styles.compareRow, i > 0 && styles.compareRowBorder]}>
               <View style={styles.compareFeatureCell}>
                 <Text style={styles.compareBodyText}>{row.feature}</Text>
@@ -141,7 +140,7 @@ export default function PaywallScreen() {
 
         {/* Plan selector */}
         <View style={styles.planRow}>
-          {/* 年額 */}
+          {/* Annual */}
           <Pressable
             style={[styles.planCard, plan === 'yearly' && styles.planCardActive]}
             onPress={() => setPlan('yearly')}
@@ -149,19 +148,19 @@ export default function PaywallScreen() {
             <View style={styles.recommendBadge}>
               <Text style={styles.recommendText}>20% OFF</Text>
             </View>
-            <Text style={[styles.planLabel, plan === 'yearly' && styles.planLabelActive]}>年額プラン</Text>
-            <Text style={[styles.planPrice, plan === 'yearly' && styles.planPriceActive]}>¥4,800</Text>
-            <Text style={[styles.planSub,   plan === 'yearly' && styles.planSubActive]}>月々 ¥400</Text>
+            <Text style={[styles.planLabel, plan === 'yearly' && styles.planLabelActive]}>{t('paywall.yearly_label')}</Text>
+            <Text style={[styles.planPrice, plan === 'yearly' && styles.planPriceActive]}>{t('paywall.yearly_price')}</Text>
+            <Text style={[styles.planSub,   plan === 'yearly' && styles.planSubActive]}>{t('paywall.yearly_per_month')}</Text>
           </Pressable>
 
-          {/* 月額 */}
+          {/* Monthly */}
           <Pressable
             style={[styles.planCard, plan === 'monthly' && styles.planCardActive]}
             onPress={() => setPlan('monthly')}
           >
-            <Text style={[styles.planLabel, plan === 'monthly' && styles.planLabelActive]}>月額プラン</Text>
-            <Text style={[styles.planPrice, plan === 'monthly' && styles.planPriceActive]}>¥500</Text>
-            <Text style={[styles.planSub,   plan === 'monthly' && styles.planSubActive]}>月払い</Text>
+            <Text style={[styles.planLabel, plan === 'monthly' && styles.planLabelActive]}>{t('paywall.monthly_label')}</Text>
+            <Text style={[styles.planPrice, plan === 'monthly' && styles.planPriceActive]}>{t('paywall.monthly_price')}</Text>
+            <Text style={[styles.planSub,   plan === 'monthly' && styles.planSubActive]}>{t('paywall.monthly_sub')}</Text>
           </Pressable>
         </View>
 
@@ -176,29 +175,25 @@ export default function PaywallScreen() {
             {loading
               ? <ActivityIndicator color="#fff" />
               : <Text style={styles.ctaText}>
-                  {plan === 'yearly' ? '年額 ¥4,800 で始める' : '月額 ¥500 で始める'}
+                  {plan === 'yearly' ? t('paywall.cta_yearly') : t('paywall.cta_monthly')}
                 </Text>
             }
           </LinearGradient>
         </Pressable>
 
         <Pressable style={styles.restoreBtn} onPress={handleRestore} disabled={loading}>
-          <Text style={styles.restoreText}>購入を復元する</Text>
+          <Text style={styles.restoreText}>{t('paywall.restore')}</Text>
         </Pressable>
 
-        <Text style={styles.legal}>
-          プランはいつでもキャンセル可能です。{'\n'}
-          支払いはApple IDに請求されます。
-        </Text>
+        <Text style={styles.legal}>{t('paywall.legal')}</Text>
 
-        {/* 利用規約・プライバシーポリシー（App Store 審査要件） */}
         <View style={styles.legalLinks}>
           <Pressable onPress={() => Linking.openURL(TERMS_URL)}>
-            <Text style={styles.legalLink}>利用規約</Text>
+            <Text style={styles.legalLink}>{t('paywall.terms')}</Text>
           </Pressable>
           <Text style={styles.legalSep}>·</Text>
           <Pressable onPress={() => Linking.openURL(PRIVACY_URL)}>
-            <Text style={styles.legalLink}>プライバシーポリシー</Text>
+            <Text style={styles.legalLink}>{t('paywall.privacy')}</Text>
           </Pressable>
         </View>
       </ScrollView>

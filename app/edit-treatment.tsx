@@ -20,6 +20,7 @@ import { CATEGORIES, Category } from '../types';
 import { getTreatmentById, updateTreatment } from '../lib/database';
 import { formatDateDisplay } from '../lib/elapsed';
 import { CalendarPicker } from '../components/CalendarPicker';
+import { t, tCategory } from '../lib/i18n';
 
 export default function EditTreatmentScreen() {
   const insets = useSafeAreaInsets();
@@ -56,13 +57,13 @@ export default function EditTreatmentScreen() {
         <View style={[styles.nav, { paddingTop: insets.top + 10 }]}>
           <View style={styles.navSide}>
             <Pressable onPress={() => router.back()}>
-              <Text style={styles.navCancel}>キャンセル</Text>
+              <Text style={styles.navCancel}>{t('edit.cancel')}</Text>
             </Pressable>
           </View>
-          <Text style={styles.navTitle}>記録を編集</Text>
+          <Text style={styles.navTitle}>{t('edit.title')}</Text>
           <View style={styles.navSideRight}>
             <Pressable onPress={handleSave} disabled={!canSave}>
-              <Text style={[styles.navSave, !canSave && styles.navSaveDisabled]}>保存</Text>
+              <Text style={[styles.navSave, !canSave && styles.navSaveDisabled]}>{t('edit.save')}</Text>
             </Pressable>
           </View>
         </View>
@@ -70,55 +71,55 @@ export default function EditTreatmentScreen() {
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-            <FieldLabel>カテゴリ</FieldLabel>
+            <FieldLabel>{t('add.category')}</FieldLabel>
             <View style={styles.chipRow}>
               {CATEGORIES.map(c => (
                 <Pressable key={c} onPress={() => setCategory(c)}>
                   {category === c ? (
                     <LinearGradient colors={ACCENT_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.chip}>
-                      <Text style={styles.chipActiveText}>{c}</Text>
+                      <Text style={styles.chipActiveText}>{tCategory(c)}</Text>
                     </LinearGradient>
                   ) : (
                     <View style={styles.chipInactive}>
-                      <Text style={styles.chipInactiveText}>{c}</Text>
+                      <Text style={styles.chipInactiveText}>{tCategory(c)}</Text>
                     </View>
                   )}
                 </Pressable>
               ))}
             </View>
 
-            <FieldLabel required>施術名</FieldLabel>
+            <FieldLabel required>{t('add.name')}</FieldLabel>
             <TextInput
               style={styles.input}
               value={name}
               onChangeText={setName}
-              placeholder="例：医療脱毛 5回目"
+              placeholder={t('edit.name_ph')}
               placeholderTextColor={COLORS.ink3}
             />
 
-            <FieldLabel required>施術日</FieldLabel>
+            <FieldLabel required>{t('add.date')}</FieldLabel>
             <Pressable style={styles.dateTrigger} onPress={() => setCalendarVisible(true)}>
               <Text style={[styles.dateTriggerText, !date && styles.datePlaceholder]}>
-                {date.length === 10 ? formatDateDisplay(date) : '日付を選択'}
+                {date.length === 10 ? formatDateDisplay(date) : t('add.date_ph')}
               </Text>
               <Feather name="calendar" size={14} color={COLORS.ink2} />
             </Pressable>
 
-            <FieldLabel>クリニック・施術者</FieldLabel>
+            <FieldLabel>{t('add.clinic')}</FieldLabel>
             <TextInput
               style={styles.input}
               value={clinic}
               onChangeText={setClinic}
-              placeholder="例：東京美容クリニック 新宿院"
+              placeholder={t('add.clinic_ph')}
               placeholderTextColor={COLORS.ink3}
             />
 
-            <FieldLabel>メモ</FieldLabel>
+            <FieldLabel>{t('add.memo')}</FieldLabel>
             <TextInput
               style={[styles.input, styles.memo]}
               value={memo}
               onChangeText={setMemo}
-              placeholder="ダウンタイムや経過の気づきを書き留める"
+              placeholder={t('add.memo_ph')}
               placeholderTextColor={COLORS.ink3}
               multiline
               numberOfLines={4}
@@ -128,7 +129,7 @@ export default function EditTreatmentScreen() {
         </KeyboardAvoidingView>
       </View>
 
-      {/* カレンダーモーダル */}
+      {/* Calendar modal */}
       <Modal
         visible={calendarVisible}
         animationType="slide"
@@ -140,7 +141,7 @@ export default function EditTreatmentScreen() {
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setCalendarVisible(false)} />
           <View style={styles.calModalSheet}>
             <View style={styles.calModalHeader}>
-              <Text style={styles.calModalTitle}>施術日を選ぶ</Text>
+              <Text style={styles.calModalTitle}>{t('edit.date_modal_title')}</Text>
               <Pressable onPress={() => setCalendarVisible(false)} hitSlop={12}>
                 <Feather name="x" size={18} color={COLORS.ink2} />
               </Pressable>

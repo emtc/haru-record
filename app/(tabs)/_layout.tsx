@@ -7,6 +7,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Feather } from '@expo/vector-icons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ACCENT_GRADIENT, COLORS } from '../../constants/theme';
+import { t } from '../../lib/i18n';
 
 const FAB_SIZE = 58;
 const FAB_PROTRUDE = 22;
@@ -14,14 +15,14 @@ const TAB_BG = 'rgba(253,251,255,0.96)';
 
 type TabConfig = {
   name: string;
-  label: string;
+  labelKey: string;
   iconActive: React.ComponentProps<typeof Ionicons>['name'];
   iconInactive: React.ComponentProps<typeof Ionicons>['name'];
 };
 
 const TABS: TabConfig[] = [
-  { name: 'index',    label: 'ホーム',    iconActive: 'home',             iconInactive: 'home-outline'     },
-  { name: 'calendar', label: 'カレンダー', iconActive: 'calendar',         iconInactive: 'calendar-outline' },
+  { name: 'index',    labelKey: 'tabs.home',     iconActive: 'home',     iconInactive: 'home-outline'     },
+  { name: 'calendar', labelKey: 'tabs.calendar', iconActive: 'calendar', iconInactive: 'calendar-outline' },
 ];
 
 function CustomTabBar({ state, navigation }: BottomTabBarProps) {
@@ -34,7 +35,6 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
 
         {TABS.map((tab, i) => {
           const isFocused = currentRoute === tab.name;
-          // FABを中央に挟む
           const isRight = i === 1;
           return (
             <React.Fragment key={tab.name}>
@@ -42,7 +42,7 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
                 <View style={styles.fabSlot}>
                   <Pressable
                     onPress={() => router.push('/add')}
-                    accessibilityLabel="新しい記録を追加"
+                    accessibilityLabel={t('tabs.add_label')}
                     accessibilityRole="button"
                     style={({ pressed }) => [styles.fabRing, pressed && { opacity: 0.82 }]}
                   >
@@ -69,7 +69,7 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
                   />
                 </View>
                 <Text style={[styles.tabLabel, isFocused && styles.tabLabelActive]}>
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </Text>
               </Pressable>
             </React.Fragment>

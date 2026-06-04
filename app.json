@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "haru-record",
+    "name": "haru record",
     "slug": "haru-record",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -18,7 +18,16 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "施術の写真を記録するためにフォトライブラリへのアクセスが必要です。",
-        "NSCameraUsageDescription": "施術の写真を撮影するためにカメラへのアクセスが必要です。"
+        "NSCameraUsageDescription": "施術の写真を撮影するためにカメラへのアクセスが必要です。",
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleDevelopmentRegion": "ja",
+        "CFBundleLocalizations": [
+          "ja",
+          "en",
+          "zh-Hans",
+          "zh-Hant-TW",
+          "ko"
+        ]
       }
     },
     "android": {
@@ -30,7 +39,9 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.READ_MEDIA_IMAGES",
-        "android.permission.READ_EXTERNAL_STORAGE"
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO",
+        "com.google.android.gms.permission.AD_ID"
       ]
     },
     "web": {
@@ -59,10 +70,18 @@
         {
           "userTrackingPermission": "より関連性の高い広告を表示するために使用されます。広告の表示に同意しない場合も引き続きアプリをご利用いただけます。"
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "37b33f2e-19f9-42dc-876a-2ed3ed388a7a"
+      }
+    },
+    "owner": "emtcdv"
   }
 }

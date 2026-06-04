@@ -20,6 +20,7 @@ import { CalendarPicker } from './CalendarPicker';
 import { PaywallModal } from './PaywallModal';
 import { todayString, daysAfterTreatment, photoLabelFromDays, formatDateDisplay } from '../lib/elapsed';
 import { persistPhoto } from '../lib/photoStorage';
+import { t } from '../lib/i18n';
 
 export function PhotoModal({
   uris,
@@ -46,6 +47,7 @@ export function PhotoModal({
   onConfirm: (date: string, label: string, caption: string, uris: string[]) => void;
   onCancel: () => void;
   onDelete?: () => void;
+  onLimitReached?: () => void;
 }) {
   const [paywallVisible, setPaywallVisible] = useState(false);
   const insets = useSafeAreaInsets();
@@ -156,7 +158,7 @@ export function PhotoModal({
               </ScrollView>
 
               {/* Date trigger */}
-              <Text style={styles.sheetLabel}>撮影日</Text>
+              <Text style={styles.sheetLabel}>{t('photo.date_label')}</Text>
               <Pressable style={styles.dateTrigger} onPress={() => setCalendarVisible(true)}>
                 <Text style={styles.dateTriggerText}>
                   {formatDateDisplay(photoDate)}
@@ -165,12 +167,12 @@ export function PhotoModal({
               </Pressable>
 
               {/* Caption */}
-              <Text style={styles.sheetLabel}>コメント（任意）</Text>
+              <Text style={styles.sheetLabel}>{t('photo.caption_label')}</Text>
               <TextInput
                 style={styles.captionInput}
                 value={caption}
                 onChangeText={setCaption}
-                placeholder="気づきや状態を一言"
+                placeholder={t('photo.caption_ph')}
                 placeholderTextColor={COLORS.ink3}
                 returnKeyType="done"
               />
@@ -179,11 +181,11 @@ export function PhotoModal({
               <View style={styles.sheetButtons}>
                 {onDelete ? (
                   <Pressable style={styles.deleteBtn} onPress={onDelete}>
-                    <Text style={styles.deleteText}>削除</Text>
+                    <Text style={styles.deleteText}>{t('photo.delete')}</Text>
                   </Pressable>
                 ) : (
                   <Pressable style={styles.skipBtn} onPress={onCancel}>
-                    <Text style={styles.skipText}>キャンセル</Text>
+                    <Text style={styles.skipText}>{t('photo.cancel')}</Text>
                   </Pressable>
                 )}
                 <Pressable
@@ -205,7 +207,7 @@ export function PhotoModal({
         </KeyboardAvoidingView>
       </View>
 
-      {/* カレンダーポップアップ */}
+      {/* Calendar popup */}
       <Modal
         visible={calendarVisible}
         animationType="slide"
@@ -217,7 +219,7 @@ export function PhotoModal({
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setCalendarVisible(false)} />
           <View style={styles.calSheet}>
             <View style={styles.calHeader}>
-              <Text style={styles.calTitle}>撮影日を選ぶ</Text>
+              <Text style={styles.calTitle}>{t('photo.date_modal_title')}</Text>
               <Pressable onPress={() => setCalendarVisible(false)} hitSlop={12}>
                 <Feather name="x" size={18} color={COLORS.ink2} />
               </Pressable>

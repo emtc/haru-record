@@ -1,3 +1,6 @@
+import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
   Dimensions,
@@ -12,15 +15,13 @@ import {
   ViewToken,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import { CalendarPicker } from '../components/CalendarPicker';
 import { ACCENT_GRADIENT, BG_GRADIENT, COLORS } from '../constants/theme';
 import { insertTreatment, markOnboardingSeen } from '../lib/database';
 import { todayString } from '../lib/elapsed';
 import { generateId } from '../lib/uuid';
-import { CalendarPicker } from '../components/CalendarPicker';
 import { Category } from '../types';
+import { t, tCategory } from '../lib/i18n';
 
 const { width: W } = Dimensions.get('window');
 const TOTAL = 7;
@@ -56,7 +57,7 @@ function ProgressDots({ current }: { current: number }) {
   );
 }
 
-// ─── Shared logo header — × always top-right ─────────────────────────────
+// ─── Shared logo header ─────────────────────────────────────────────────
 function LogoHeader({ onClose }: { onClose: () => void }) {
   return (
     <View style={pg.logoRow}>
@@ -72,9 +73,9 @@ function LogoHeader({ onClose }: { onClose: () => void }) {
 // ─── Mini preview cards ───────────────────────────────────────────────────
 function MiniListPreview() {
   const rows = [
-    { name: '医療脱毛',     sub: '03.15 · 脱毛',      days: '60', color: '#f5b0d8' },
-    { name: 'ヒアルロン酸', sub: '04.28 · 注入',      days: '16', color: '#b0b4f4' },
-    { name: 'ピーリング',   sub: '05.10 · スキンケア', days: '4',  color: '#eea8ec' },
+    { name: t('onboarding.mini_row1_name'), sub: t('onboarding.mini_row1_sub'), days: '60', color: '#f5b0d8' },
+    { name: t('onboarding.mini_row2_name'), sub: t('onboarding.mini_row2_sub'), days: '16', color: '#b0b4f4' },
+    { name: t('onboarding.mini_row3_name'), sub: t('onboarding.mini_row3_sub'), days: '4',  color: '#eea8ec' },
   ];
   return (
     <View style={[mini.card, { transform: [{ rotate: '-2deg' }] }]}>
@@ -86,10 +87,10 @@ function MiniListPreview() {
             <Text style={mini.rowName} numberOfLines={1}>{r.name}</Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
-            <Text style={mini.daysLabel}>経過</Text>
+            <Text style={mini.daysLabel}>{t('onboarding.mini_elapsed')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
               <Text style={mini.daysNum}>{r.days}</Text>
-              <Text style={mini.daysUnit}>日</Text>
+              <Text style={mini.daysUnit}>{t('onboarding.mini_unit')}</Text>
             </View>
           </View>
         </View>
@@ -103,12 +104,12 @@ function MiniPhotoPreview() {
     <View style={[mini.card, { transform: [{ rotate: '1.5deg' }] }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
         <View style={mini.dot} />
-        <Text style={mini.rowSub}>当日</Text>
+        <Text style={mini.rowSub}>{t('onboarding.mini_today')}</Text>
       </View>
       <LinearGradient colors={['#fcd5e3', '#e7d6f0']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={mini.photoLg} />
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, marginBottom: 6 }}>
         <View style={[mini.dot, { opacity: 0.45 }]} />
-        <Text style={mini.rowSub}>1ヶ月後</Text>
+        <Text style={mini.rowSub}>{t('onboarding.mini_1mo')}</Text>
       </View>
       <View style={{ flexDirection: 'row', gap: 6 }}>
         <LinearGradient colors={['#f7dde6', '#f0e3f3']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={mini.photoSm} />
@@ -118,7 +119,7 @@ function MiniPhotoPreview() {
   );
 }
 
-const WEEK = ['日', '月', '火', '水', '木', '金', '土'];
+const WEEK_KEYS = ['weekdays.sun', 'weekdays.mon', 'weekdays.tue', 'weekdays.wed', 'weekdays.thu', 'weekdays.fri', 'weekdays.sat'];
 const MARKED = new Set([4, 11, 21]);
 
 function MiniCalendarPreview() {
@@ -127,9 +128,9 @@ function MiniCalendarPreview() {
     <View style={[mini.card, { transform: [{ rotate: '-1.5deg' }] }]}>
       <Text style={mini.monthLabel}>2026.05</Text>
       <View style={mini.calGrid}>
-        {WEEK.map(d => (
-          <View key={d} style={mini.calCell}>
-            <Text style={mini.weekDay}>{d}</Text>
+        {WEEK_KEYS.map(key => (
+          <View key={key} style={mini.calCell}>
+            <Text style={mini.weekDay}>{t(key)}</Text>
           </View>
         ))}
         {days.map(day => {
@@ -156,27 +157,27 @@ function MiniCalendarPreview() {
 }
 
 // ─── Page B: value prop ───────────────────────────────────────────────────
-const B_FEATURES: { icon: React.ComponentProps<typeof Feather>['name']; label: string; sub: string }[] = [
-  { icon: 'edit-3',   label: '施術を記録', sub: '施術名・日付・クリニックをひとまとめに管理' },
-  { icon: 'camera',   label: '写真で残す', sub: 'ビフォーアフターを日付付きで管理' },
-  { icon: 'activity', label: '経過を確認', sub: '施術から何日経ったかを自動で計算' },
-];
-
 function PageB({ pageIndex, goNext, skip, onClose, topPad, bottomPad }: {
   pageIndex: number; goNext: () => void; skip: () => void; onClose: () => void;
   topPad: number; bottomPad: number;
 }) {
+  const features = [
+    { icon: 'edit-3' as const,   label: t('onboarding.feature0_label'), sub: t('onboarding.feature0_sub') },
+    { icon: 'camera' as const,   label: t('onboarding.feature1_label'), sub: t('onboarding.feature1_sub') },
+    { icon: 'activity' as const, label: t('onboarding.feature2_label'), sub: t('onboarding.feature2_sub') },
+  ];
+
   return (
     <View style={[pg.slide, { paddingTop: topPad + 16, paddingBottom: bottomPad + 24 }]}>
       <LogoHeader onClose={onClose} />
 
       <View style={{ flex: 1, justifyContent: 'center', gap: 22 }}>
         <View style={{ alignItems: 'center' }}>
-          <Text style={pg.eyebrow}>BEAUTY RECORD</Text>
-          <Text style={pg.headline}>美容の記録を、{'\n'}もっと丁寧に。</Text>
+          <Text style={pg.eyebrow}>{t('onboarding.eyebrow')}</Text>
+          <Text style={pg.headline}>{t('onboarding.headline')}</Text>
         </View>
         <View style={{ gap: 10 }}>
-          {B_FEATURES.map((f, i) => (
+          {features.map((f, i) => (
             <View key={i} style={pg.featureRow}>
               <LinearGradient colors={ACCENT_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={pg.featureIcon}>
                 <Feather name={f.icon} size={18} color="#fff" />
@@ -195,14 +196,13 @@ function PageB({ pageIndex, goNext, skip, onClose, topPad, bottomPad }: {
       </View>
       <Pressable onPress={goNext} style={{ width: '100%' }}>
         <LinearGradient colors={ACCENT_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={pg.btn}>
-          <Text style={pg.btnText}>はじめる</Text>
+          <Text style={pg.btnText}>{t('onboarding.start')}</Text>
           <Feather name="arrow-right" size={15} color="#fff" style={{ marginLeft: 6 }} />
         </LinearGradient>
       </Pressable>
-      {/* B ページのスキップ = C セクションへジャンプ */}
       <View style={{ height: SLOT_H, justifyContent: 'center', alignItems: 'center' }}>
         <Pressable onPress={skip} hitSlop={12}>
-          <Text style={pg.slotText}>スキップ</Text>
+          <Text style={pg.slotText}>{t('onboarding.skip')}</Text>
         </Pressable>
       </View>
     </View>
@@ -210,17 +210,17 @@ function PageB({ pageIndex, goNext, skip, onClose, topPad, bottomPad }: {
 }
 
 // ─── Pages A: UI preview ──────────────────────────────────────────────────
-const A_SLIDES = [
-  { Preview: MiniListPreview,     headline: '施術を、\nそのまま記録',    body: '医療脱毛・整形・スキンケア・注入。\nカテゴリ別に、写真と一緒に。' },
-  { Preview: MiniPhotoPreview,    headline: '経過を、\n写真で残す',      body: '施術日からの日数を自動で計算。\n変化が一目でわかります。' },
-  { Preview: MiniCalendarPreview, headline: '次の予定も、\nカレンダーで', body: '施術日をカレンダーで一覧表示。\nいつでも過去の記録を見返せます。' },
+const A_SLIDE_KEYS = [
+  { Preview: MiniListPreview,     headlineKey: 'onboarding.slide0_headline', bodyKey: 'onboarding.slide0_body' },
+  { Preview: MiniPhotoPreview,    headlineKey: 'onboarding.slide1_headline', bodyKey: 'onboarding.slide1_body' },
+  { Preview: MiniCalendarPreview, headlineKey: 'onboarding.slide2_headline', bodyKey: 'onboarding.slide2_body' },
 ];
 
 function PageA({ step, pageIndex, goNext, skip, onClose, topPad, bottomPad }: {
   step: number; pageIndex: number; goNext: () => void; skip: () => void; onClose: () => void;
   topPad: number; bottomPad: number;
 }) {
-  const { Preview, headline, body } = A_SLIDES[step];
+  const { Preview, headlineKey, bodyKey } = A_SLIDE_KEYS[step];
   const isLast = step === 2;
 
   return (
@@ -230,8 +230,8 @@ function PageA({ step, pageIndex, goNext, skip, onClose, topPad, bottomPad }: {
       <View style={pg.centerArea}>
         <Preview />
         <View style={{ alignItems: 'center' }}>
-          <Text style={pg.slideHeadline}>{headline}</Text>
-          <Text style={pg.slideBody}>{body}</Text>
+          <Text style={pg.slideHeadline}>{t(headlineKey)}</Text>
+          <Text style={pg.slideBody}>{t(bodyKey)}</Text>
         </View>
       </View>
 
@@ -240,14 +240,13 @@ function PageA({ step, pageIndex, goNext, skip, onClose, topPad, bottomPad }: {
       </View>
       <Pressable onPress={goNext} style={{ width: '100%' }}>
         <LinearGradient colors={ACCENT_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={pg.btn}>
-          <Text style={pg.btnText}>{isLast ? '記録を始める' : '次へ'}</Text>
+          <Text style={pg.btnText}>{isLast ? t('onboarding.slide2_next') : t('onboarding.next')}</Text>
           {!isLast && <Feather name="arrow-right" size={15} color="#fff" style={{ marginLeft: 6 }} />}
         </LinearGradient>
       </Pressable>
-      {/* A ページのスキップ = C セクションへジャンプ */}
       <View style={{ height: SLOT_H, justifyContent: 'center', alignItems: 'center' }}>
         <Pressable onPress={skip} hitSlop={12}>
-          <Text style={pg.slotText}>スキップ</Text>
+          <Text style={pg.slotText}>{t('onboarding.skip')}</Text>
         </Pressable>
       </View>
     </View>
@@ -267,16 +266,16 @@ function PageC0({ pageIndex, goNext, onClose, topPad, bottomPad }: {
           <LinearGradient colors={ACCENT_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={c0.cardIcon}>
             <PetalMark size={28} white />
           </LinearGradient>
-          <Text style={c0.cardDate}>2026.05.14 · 脱毛</Text>
-          <Text style={c0.cardName}>医療脱毛</Text>
+          <Text style={c0.cardDate}>{t('onboarding.c0_date')}</Text>
+          <Text style={c0.cardName}>{t('onboarding.c0_name')}</Text>
           <LinearGradient colors={ACCENT_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={c0.cardBadge}>
-            <Text style={c0.badgeSmall}>経過</Text>
+            <Text style={c0.badgeSmall}>{t('onboarding.c0_elapsed')}</Text>
             <Text style={c0.badgeBig}>0</Text>
-            <Text style={c0.badgeUnit}>日</Text>
+            <Text style={c0.badgeUnit}>{t('onboarding.c0_unit')}</Text>
           </LinearGradient>
         </View>
-        <Text style={[pg.slideHeadline, { marginTop: 28 }]}>最初の記録から、{'\n'}はじめましょう。</Text>
-        <Text style={[pg.slideBody, { marginTop: 12 }]}>30秒で、ひとつ追加できます。</Text>
+        <Text style={[pg.slideHeadline, { marginTop: 28 }]}>{t('onboarding.c0_headline')}</Text>
+        <Text style={[pg.slideBody, { marginTop: 12 }]}>{t('onboarding.c0_body')}</Text>
       </View>
 
       <View style={{ height: DOTS_H, justifyContent: 'center', alignItems: 'center' }}>
@@ -284,12 +283,12 @@ function PageC0({ pageIndex, goNext, onClose, topPad, bottomPad }: {
       </View>
       <Pressable onPress={goNext} style={{ width: '100%' }}>
         <LinearGradient colors={ACCENT_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={pg.btn}>
-          <Text style={pg.btnText}>記録を追加する</Text>
+          <Text style={pg.btnText}>{t('onboarding.c0_add')}</Text>
         </LinearGradient>
       </Pressable>
       <View style={{ height: SLOT_H, justifyContent: 'center', alignItems: 'center' }}>
         <Pressable onPress={onClose} hitSlop={12}>
-          <Text style={pg.slotText}>あとで追加</Text>
+          <Text style={pg.slotText}>{t('onboarding.c0_later')}</Text>
         </Pressable>
       </View>
     </View>
@@ -297,12 +296,12 @@ function PageC0({ pageIndex, goNext, onClose, topPad, bottomPad }: {
 }
 
 // ─── Page C-1: category picker ────────────────────────────────────────────
-const CATS: { key: Category; sub: string; color: string }[] = [
-  { key: '脱毛',       sub: '医療・光脱毛',            color: '#f5b0d8' },
-  { key: 'スキンケア', sub: 'ピーリング・美白など',     color: '#eea8ec' },
-  { key: '注入',       sub: 'ボトックス・ヒアルロン酸', color: '#b0b4f4' },
-  { key: '整形',       sub: '美容外科',                color: '#c8a8f0' },
-  { key: 'その他',     sub: '',                        color: '#c4b4f0' },
+const CATS: { key: Category; subKey: string; color: string }[] = [
+  { key: '脱毛',       subKey: 'onboarding.cat_hair_sub',    color: '#f5b0d8' },
+  { key: 'スキンケア', subKey: 'onboarding.cat_skin_sub',    color: '#eea8ec' },
+  { key: '注入',       subKey: 'onboarding.cat_inject_sub',  color: '#b0b4f4' },
+  { key: '整形',       subKey: 'onboarding.cat_surgery_sub', color: '#c8a8f0' },
+  { key: 'その他',     subKey: 'onboarding.cat_other_sub',   color: '#c4b4f0' },
 ];
 
 function PageC1({ pageIndex, goNext, onClose, sel, setSel, topPad, bottomPad }: {
@@ -314,8 +313,8 @@ function PageC1({ pageIndex, goNext, onClose, sel, setSel, topPad, bottomPad }: 
     <View style={[pg.slide, { paddingTop: topPad + 16, paddingBottom: bottomPad + 24 }]}>
       <LogoHeader onClose={onClose} />
 
-      <Text style={c1.question}>どんな施術ですか？</Text>
-      <Text style={c1.questionSub}>あとから変更できます。</Text>
+      <Text style={c1.question}>{t('onboarding.c1_question')}</Text>
+      <Text style={c1.questionSub}>{t('onboarding.c1_sub')}</Text>
 
       <View style={c1.catGrid}>
         {CATS.map(c => {
@@ -324,8 +323,8 @@ function PageC1({ pageIndex, goNext, onClose, sel, setSel, topPad, bottomPad }: 
             <Pressable key={c.key} onPress={() => setSel(c.key)} style={[c1.catCard, active && c1.catCardActive]}>
               <View style={[c1.catSwatch, { backgroundColor: c.color }]} />
               <View>
-                <Text style={c1.catLabel}>{c.key}</Text>
-                {c.sub ? <Text style={c1.catSub}>{c.sub}</Text> : null}
+                <Text style={c1.catLabel}>{tCategory(c.key)}</Text>
+                <Text style={c1.catSub}>{t(c.subKey)}</Text>
               </View>
             </Pressable>
           );
@@ -339,11 +338,10 @@ function PageC1({ pageIndex, goNext, onClose, sel, setSel, topPad, bottomPad }: 
       </View>
       <Pressable onPress={goNext} disabled={!sel} style={{ width: '100%', opacity: sel ? 1 : 0.4 }}>
         <LinearGradient colors={ACCENT_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={pg.btn}>
-          <Text style={pg.btnText}>次へ</Text>
+          <Text style={pg.btnText}>{t('onboarding.next')}</Text>
           <Feather name="arrow-right" size={15} color="#fff" style={{ marginLeft: 6 }} />
         </LinearGradient>
       </Pressable>
-      {/* × で終了できるのでここは空スロット */}
       <View style={{ height: SLOT_H }} />
     </View>
   );
@@ -371,8 +369,8 @@ function PageC2({ pageIndex, save, onClose, category, name, setName, date, setDa
     <View style={[pg.slide, { paddingTop: topPad + 16, paddingBottom: bottomPad + 24 }]}>
       <LogoHeader onClose={onClose} />
 
-      <Text style={c1.question}>施術名と日付を{'\n'}教えてください</Text>
-      <Text style={c1.questionSub}>あとから変更できます。</Text>
+      <Text style={c1.question}>{t('onboarding.c2_question')}</Text>
+      <Text style={c1.questionSub}>{t('onboarding.c2_sub')}</Text>
 
       <ScrollView
         style={{ flex: 1 }}
@@ -383,20 +381,19 @@ function PageC2({ pageIndex, save, onClose, category, name, setName, date, setDa
         {category && (
           <View style={c2.catChip}>
             <View style={[c2.catChipDot, { backgroundColor: CAT_COLOR[category] }]} />
-            <Text style={c2.catChipText}>{category}</Text>
+            <Text style={c2.catChipText}>{tCategory(category)}</Text>
           </View>
         )}
 
         <TextInput
           value={name}
           onChangeText={setName}
-          placeholder="例：医療脱毛、目頭切開など"
+          placeholder={t('onboarding.c2_ph')}
           placeholderTextColor={COLORS.ink3}
           style={c2.input}
           returnKeyType="done"
         />
 
-        {/* CalendarPicker already has its own card styling */}
         <CalendarPicker value={date} onChange={setDate} />
       </ScrollView>
 
@@ -405,10 +402,9 @@ function PageC2({ pageIndex, save, onClose, category, name, setName, date, setDa
       </View>
       <Pressable onPress={save} disabled={!canSave} style={{ width: '100%', opacity: canSave ? 1 : 0.4 }}>
         <LinearGradient colors={ACCENT_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={pg.btn}>
-          <Text style={pg.btnText}>記録する</Text>
+          <Text style={pg.btnText}>{t('onboarding.c2_save')}</Text>
         </LinearGradient>
       </Pressable>
-      {/* × で終了できるのでここは空スロット */}
       <View style={{ height: SLOT_H }} />
     </View>
   );
@@ -445,7 +441,6 @@ export default function OnboardingScreen() {
     else finish();
   }
 
-  // B/A ページの「スキップ」= C セクション（記録追加フロー）へジャンプ
   function jumpToC() {
     scrollTo(4);
   }
@@ -482,7 +477,6 @@ export default function OnboardingScreen() {
         keyExtractor={(i) => String(i)}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
-        // C1（カテゴリ選択）は未選択のとき前進スワイプを封鎖
         scrollEnabled={!(currentIndex === 5 && !selectedCat)}
         extraData={{ selectedCat, treatmentName, treatmentDate, currentIndex }}
         style={{ flex: 1 }}
@@ -545,7 +539,6 @@ const pg = StyleSheet.create({
   featureIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   featureLabel: { fontSize: 13, fontWeight: '500', color: COLORS.ink },
   featureSub: { fontSize: 10, color: COLORS.ink2, marginTop: 2 },
-  footerText: { fontSize: 10, color: COLORS.ink3 },
   centerArea: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 28 },
   slideHeadline: { fontSize: 22, fontWeight: '500', color: COLORS.ink, textAlign: 'center', lineHeight: 34, letterSpacing: -0.4 },
   slideBody: { fontSize: 12, color: COLORS.ink2, textAlign: 'center', lineHeight: 22, marginTop: 10 },

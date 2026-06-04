@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, CARD_SHADOW, RADIUS, CATEGORY_GRADIENT } from '../constants/theme';
 import { Treatment, ElapsedTime } from '../types';
 import ElapsedBadge from './ElapsedBadge';
+import { t, tCategory } from '../lib/i18n';
 
 interface Props {
   treatment: Treatment;
@@ -33,7 +34,7 @@ export default function TreatmentItem({ treatment, elapsed, isFirst, onPress, ph
           <Image
             source={{ uri: photoUri }}
             style={styles.photo}
-            accessibilityLabel={`${treatment.name}の写真`}
+            accessibilityLabel={t('treatment.photo_a11y', { name: treatment.name })}
           />
         ) : (
           <LinearGradient
@@ -47,7 +48,7 @@ export default function TreatmentItem({ treatment, elapsed, isFirst, onPress, ph
 
         <View style={styles.info}>
           <Text style={styles.meta} numberOfLines={1}>
-            {dateShort} · {treatment.category}
+            {dateShort} · {tCategory(treatment.category)}
           </Text>
           <Text style={styles.name} numberOfLines={1}>{treatment.name}</Text>
         </View>

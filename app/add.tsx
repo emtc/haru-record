@@ -1,3 +1,8 @@
+import { Feather } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Image,
@@ -12,28 +17,20 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
-import * as Haptics from 'expo-haptics';
-import { persistPhoto } from '../lib/photoStorage';
-import { Feather } from '@expo/vector-icons';
-import { ACCENT_GRADIENT, BG_GRADIENT, COLORS, CARD_SHADOW } from '../constants/theme';
-import { CATEGORIES, Category, Treatment } from '../types';
-import { insertTreatment, insertPhoto } from '../lib/database';
-import { todayString, formatDateDisplay } from '../lib/elapsed';
-import { generateId } from '../lib/uuid';
-import { PhotoModal } from '../components/PhotoModal';
 import { CalendarPicker } from '../components/CalendarPicker';
+import { PhotoModal } from '../components/PhotoModal';
+import { ACCENT_GRADIENT, BG_GRADIENT, COLORS } from '../constants/theme';
+import { insertPhoto, insertTreatment } from '../lib/database';
+import { formatDateDisplay, todayString } from '../lib/elapsed';
+import { persistPhoto } from '../lib/photoStorage';
 import { useSubscription } from '../lib/subscriptionContext';
+import { generateId } from '../lib/uuid';
+import { CATEGORIES, Category, Treatment } from '../types';
+import { t, tCategory } from '../lib/i18n';
 
 const FREE_PHOTO_LIMIT = 3;
 
-
 type PhotoDraft = { uri: string; label: string; caption: string; date: string };
-
-
-// ── Main screen ──────────────────────────────────────────────────────────────
 
 export default function AddScreen() {
   const insets = useSafeAreaInsets();
@@ -122,13 +119,13 @@ export default function AddScreen() {
         <View style={[styles.nav, { paddingTop: insets.top + 10 }]}>
           <View style={styles.navSide}>
             <Pressable onPress={() => router.back()}>
-              <Text style={styles.navCancel}>キャンセル</Text>
+              <Text style={styles.navCancel}>{t('add.cancel')}</Text>
             </Pressable>
           </View>
-          <Text style={styles.navTitle}>新しい記録</Text>
+          <Text style={styles.navTitle}>{t('add.title')}</Text>
           <View style={styles.navSideRight}>
             <Pressable onPress={handleSave} disabled={!canSave}>
-              <Text style={[styles.navSave, !canSave && styles.navSaveDisabled]}>保存</Text>
+              <Text style={[styles.navSave, !canSave && styles.navSaveDisabled]}>{t('add.save')}</Text>
             </Pressable>
           </View>
         </View>
@@ -136,61 +133,61 @@ export default function AddScreen() {
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-            <FieldLabel>カテゴリ</FieldLabel>
+            <FieldLabel>{t('add.category')}</FieldLabel>
             <View style={styles.chipRow}>
               {CATEGORIES.map(c => (
                 <Pressable key={c} onPress={() => setCategory(c)}>
                   {category === c ? (
                     <LinearGradient colors={ACCENT_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.chip}>
-                      <Text style={styles.chipActiveText}>{c}</Text>
+                      <Text style={styles.chipActiveText}>{tCategory(c)}</Text>
                     </LinearGradient>
                   ) : (
                     <View style={styles.chipInactive}>
-                      <Text style={styles.chipInactiveText}>{c}</Text>
+                      <Text style={styles.chipInactiveText}>{tCategory(c)}</Text>
                     </View>
                   )}
                 </Pressable>
               ))}
             </View>
 
-            <FieldLabel required>施術名</FieldLabel>
+            <FieldLabel required>{t('add.name')}</FieldLabel>
             <TextInput
               style={styles.input}
               value={name}
               onChangeText={setName}
-              placeholder="例：医療脱毛 5回目"
+              placeholder={t('add.name_ph')}
               placeholderTextColor={COLORS.ink3}
             />
 
-            <FieldLabel required>施術日</FieldLabel>
+            <FieldLabel required>{t('add.date')}</FieldLabel>
             <Pressable style={styles.dateTrigger} onPress={() => setCalendarVisible(true)}>
               <Text style={[styles.dateTriggerText, !date && styles.datePlaceholder]}>
-                {date.length === 10 ? formatDateDisplay(date) : '日付を選択'}
+                {date.length === 10 ? formatDateDisplay(date) : t('add.date_ph')}
               </Text>
               <Feather name="calendar" size={14} color={COLORS.ink2} />
             </Pressable>
 
-            <FieldLabel>クリニック・施術者</FieldLabel>
+            <FieldLabel>{t('add.clinic')}</FieldLabel>
             <TextInput
               style={styles.input}
               value={clinic}
               onChangeText={setClinic}
-              placeholder="例：東京美容クリニック 新宿院"
+              placeholder={t('add.clinic_ph')}
               placeholderTextColor={COLORS.ink3}
             />
 
-            <FieldLabel>メモ</FieldLabel>
+            <FieldLabel>{t('add.memo')}</FieldLabel>
             <TextInput
               style={[styles.input, styles.memo]}
               value={memo}
               onChangeText={setMemo}
-              placeholder="ダウンタイムや経過の気づきを書き留める"
+              placeholder={t('add.memo_ph')}
               placeholderTextColor={COLORS.ink3}
               multiline
               numberOfLines={4}
             />
 
-            <FieldLabel>写真</FieldLabel>
+            <FieldLabel>{t('add.photos')}</FieldLabel>
             <View style={styles.photoRow}>
               <Pressable style={styles.photoAdd} onPress={pickPhoto}>
                 <Text style={styles.photoAddText}>＋</Text>
@@ -213,7 +210,7 @@ export default function AddScreen() {
         </KeyboardAvoidingView>
       </View>
 
-      {/* カレンダーモーダル */}
+      {/* Calendar modal */}
       <Modal
         visible={calendarVisible}
         animationType="slide"
@@ -225,7 +222,7 @@ export default function AddScreen() {
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setCalendarVisible(false)} />
           <View style={styles.calModalSheet}>
             <View style={styles.calModalHeader}>
-              <Text style={styles.calModalTitle}>施術日を選ぶ</Text>
+              <Text style={styles.calModalTitle}>{t('add.date_modal_title')}</Text>
               <Pressable onPress={() => setCalendarVisible(false)} hitSlop={12}>
                 <Feather name="x" size={18} color={COLORS.ink2} />
               </Pressable>
@@ -241,7 +238,6 @@ export default function AddScreen() {
         </View>
       </Modal>
 
-      {/* 新規追加モーダル */}
       {pendingUris.length > 0 && (
         <PhotoModal
           uris={pendingUris}
@@ -249,13 +245,12 @@ export default function AddScreen() {
           allowPhotoChange
           allowAddRemove
           maxPhotos={isPremium ? undefined : FREE_PHOTO_LIMIT - photos.length}
-          confirmLabel="追加する"
+          confirmLabel={t('add.photo_confirm')}
           onConfirm={handlePhotoConfirm}
           onCancel={() => setPendingUris([])}
         />
       )}
 
-      {/* 編集モーダル */}
       {editingIndex !== null && photos[editingIndex] && (
         <PhotoModal
           uris={[photos[editingIndex].uri]}
@@ -263,7 +258,7 @@ export default function AddScreen() {
           initialDate={photos[editingIndex].date}
           initialCaption={photos[editingIndex].caption}
           allowPhotoChange
-          confirmLabel="保存する"
+          confirmLabel={t('add.photo_edit_confirm')}
           onConfirm={handlePhotoEdit}
           onCancel={() => setEditingIndex(null)}
           onDelete={handlePhotoDelete}

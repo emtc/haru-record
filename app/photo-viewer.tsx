@@ -23,6 +23,7 @@ import { useSubscription } from '../lib/subscriptionContext';
 import { formatDateDisplay } from '../lib/elapsed';
 import { TreatmentPhoto } from '../types';
 import { PhotoModal } from '../components/PhotoModal';
+import { t } from '../lib/i18n';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const THUMB_SIZE = 52;
@@ -77,7 +78,7 @@ export default function PhotoViewerScreen() {
         <LinearGradient colors={BG_GRADIENT} style={StyleSheet.absoluteFill} />
         <View style={[styles.nav, { paddingTop: navPaddingTop }]}>
           <Pressable style={styles.backBtn} onPress={() => router.back()}>
-            <Text style={styles.backIcon}>‹</Text>
+            <Feather name="chevron-left" size={20} color={COLORS.ink2} />
           </Pressable>
         </View>
       </View>
@@ -103,10 +104,10 @@ export default function PhotoViewerScreen() {
   function handleDelete() {
     setMenuVisible(false);
     const p = photos[current];
-    Alert.alert('写真を削除', 'この写真を削除しますか？', [
-      { text: 'キャンセル', style: 'cancel' },
+    Alert.alert(t('photo_viewer.delete_title'), t('photo_viewer.delete_message'), [
+      { text: t('photo_viewer.delete_cancel'), style: 'cancel' },
       {
-        text: '削除', style: 'destructive', onPress: () => {
+        text: t('photo_viewer.delete_confirm'), style: 'destructive', onPress: () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
           deletePhoto(p.id);
           const newPhotos = photos.filter(ph => ph.id !== p.id);
@@ -144,10 +145,10 @@ export default function PhotoViewerScreen() {
             <Text style={styles.navTitle} numberOfLines={1}>{treatment.name}</Text>
           )}
           <Text style={styles.counter}>
-            {comparePhoto ? '比較モード' : `${current + 1} / ${photos.length}`}
+            {comparePhoto ? t('photo_viewer.compare_mode') : `${current + 1} / ${photos.length}`}
           </Text>
         </View>
-        <Pressable style={styles.menuBtn} onPress={() => setMenuVisible(true)} accessibilityLabel="メニュー" accessibilityRole="button">
+        <Pressable style={styles.menuBtn} onPress={() => setMenuVisible(true)} accessibilityLabel={t('photo_viewer.menu_a11y')} accessibilityRole="button">
           <Feather name="more-horizontal" size={18} color={COLORS.ink2} />
         </Pressable>
       </View>
@@ -194,7 +195,7 @@ export default function PhotoViewerScreen() {
             {pickerPhotos.length > 0 && (
               <Pressable style={styles.changeBtn} onPress={() => setPickerVisible(true)}>
                 <Feather name="refresh-cw" size={10} color="#fff" />
-                <Text style={styles.changeBtnText}>変更</Text>
+                <Text style={styles.changeBtnText}>{t('photo_viewer.change')}</Text>
               </Pressable>
             )}
           </View>
@@ -224,7 +225,7 @@ export default function PhotoViewerScreen() {
                   source={{ uri: item.uri }}
                   style={styles.photo}
                   resizeMode="contain"
-                  accessibilityLabel={`写真 ${index + 1} / ${photos.length}${item.label ? '、' + item.label : ''}`}
+                  accessibilityLabel={`${t('photo_viewer.photo_a11y', { n: index + 1, total: photos.length })}${item.label ? `, ${item.label}` : ''}`}
                 />
               </View>
             )}
@@ -260,7 +261,7 @@ export default function PhotoViewerScreen() {
               }}
             >
               <Feather name="columns" size={12} color={COLORS.purple} />
-              <Text style={styles.compareBtnText}>比較する</Text>
+              <Text style={styles.compareBtnText}>{t('photo_viewer.compare_btn')}</Text>
               {!isPremium && <Feather name="lock" size={10} color={COLORS.purple} />}
             </Pressable>
           )}
@@ -286,7 +287,7 @@ export default function PhotoViewerScreen() {
                     <Pressable
                       onPress={() => goTo(index)}
                       style={styles.thumbWrap}
-                      accessibilityLabel={`写真 ${index + 1} に移動`}
+                      accessibilityLabel={t('photo_viewer.thumb_a11y', { n: index + 1 })}
                       accessibilityRole="button"
                     >
                       <Image
@@ -324,7 +325,7 @@ export default function PhotoViewerScreen() {
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setPickerVisible(false)} />
           <View style={[styles.pickerSheet, { paddingBottom: Math.max(insets.bottom, 16) }]}>
             <View style={styles.pickerHandle} />
-            <Text style={styles.pickerTitle}>比較する写真を選ぶ</Text>
+            <Text style={styles.pickerTitle}>{t('photo_viewer.picker_title')}</Text>
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.pickerGrid}>
                 {pickerPhotos.map(p => (
@@ -344,7 +345,7 @@ export default function PhotoViewerScreen() {
               </View>
             </ScrollView>
             <Pressable style={styles.pickerCancelRow} onPress={() => setPickerVisible(false)}>
-              <Text style={styles.pickerCancelText}>キャンセル</Text>
+              <Text style={styles.pickerCancelText}>{t('photo_viewer.picker_cancel')}</Text>
             </Pressable>
           </View>
         </View>
@@ -358,7 +359,7 @@ export default function PhotoViewerScreen() {
           initialDate={photos[current].date}
           initialCaption={photos[current].caption}
           allowPhotoChange
-          confirmLabel="保存する"
+          confirmLabel={t('photo_viewer.edit_confirm')}
           onConfirm={handleEditConfirm}
           onCancel={() => setEditVisible(false)}
         />
@@ -380,15 +381,15 @@ export default function PhotoViewerScreen() {
               onPress={() => { setMenuVisible(false); setEditVisible(true); }}
             >
               <Feather name="edit-2" size={16} color={COLORS.purple} />
-              <Text style={styles.actionText}>写真を編集</Text>
+              <Text style={styles.actionText}>{t('photo_viewer.action_edit')}</Text>
             </Pressable>
             <View style={styles.actionDivider} />
             <Pressable style={styles.actionRow} onPress={handleDelete}>
               <Feather name="trash-2" size={16} color={COLORS.pink} />
-              <Text style={[styles.actionText, styles.actionTextDanger]}>写真を削除</Text>
+              <Text style={[styles.actionText, styles.actionTextDanger]}>{t('photo_viewer.action_delete')}</Text>
             </Pressable>
             <Pressable style={styles.actionCancelRow} onPress={() => setMenuVisible(false)}>
-              <Text style={styles.actionCancelText}>キャンセル</Text>
+              <Text style={styles.actionCancelText}>{t('photo_viewer.action_cancel')}</Text>
             </Pressable>
           </View>
         </View>

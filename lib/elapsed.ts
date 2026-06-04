@@ -1,5 +1,6 @@
 import { differenceInCalendarDays, differenceInMonths } from 'date-fns';
 import { ElapsedTime } from '../types';
+import { t } from './i18n';
 
 export function getElapsed(dateStr: string): ElapsedTime {
   const date = new Date(dateStr + 'T00:00:00');
@@ -16,9 +17,9 @@ export function formatDateDisplay(dateStr: string): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
-  const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
-  const w = weekdays[date.getDay()];
-  return `${y}.${m}.${d}（${w}）`;
+  const weekdayKeys = ['weekdays.sun', 'weekdays.mon', 'weekdays.tue', 'weekdays.wed', 'weekdays.thu', 'weekdays.fri', 'weekdays.sat'];
+  const w = t(weekdayKeys[date.getDay()]);
+  return t('date_format', { y, m, d, w });
 }
 
 export function formatDateShort(dateStr: string): string {
@@ -38,27 +39,27 @@ export function todayString(): string {
 }
 
 export function formatElapsed(e: ElapsedTime): string {
-  if (e.totalDays === 0) return '当日';
-  if (e.months === 0) return `${e.totalDays}日`;
-  return `${e.months}ヶ月${e.days}日`;
+  if (e.totalDays === 0) return t('elapsed.today');
+  if (e.months === 0) return `${e.totalDays}${t('elapsed.days_unit')}`;
+  return `${e.months}${t('elapsed.months_unit')}${e.days}${t('elapsed.days_unit')}`;
 }
 
 export function daysAfterTreatment(treatmentDate: string, photoDate: string): number {
-  const t = new Date(treatmentDate + 'T00:00:00');
+  const tr = new Date(treatmentDate + 'T00:00:00');
   const p = new Date(photoDate + 'T00:00:00');
-  return differenceInCalendarDays(p, t);
+  return differenceInCalendarDays(p, tr);
 }
 
 export function photoLabelFromDays(days: number): string {
-  if (days < 0) return `施術前${Math.abs(days)}日`;
-  if (days === 0) return '当日';
-  if (days === 1) return '翌日';
-  if (days === 7) return '1週間後';
-  if (days === 14) return '2週間後';
-  if (days === 30) return '1ヶ月後';
-  if (days === 60) return '2ヶ月後';
-  if (days === 90) return '3ヶ月後';
-  if (days === 180) return '半年後';
-  if (days >= 365) return '1年後';
-  return `${days}日後`;
+  if (days < 0) return t('elapsed.before', { n: Math.abs(days) });
+  if (days === 0) return t('elapsed.today');
+  if (days === 1) return t('elapsed.next_day');
+  if (days === 7) return t('elapsed.one_week');
+  if (days === 14) return t('elapsed.two_weeks');
+  if (days === 30) return t('elapsed.one_month');
+  if (days === 60) return t('elapsed.two_months');
+  if (days === 90) return t('elapsed.three_months');
+  if (days === 180) return t('elapsed.half_year');
+  if (days >= 365) return t('elapsed.one_year');
+  return t('elapsed.days_after', { n: days });
 }

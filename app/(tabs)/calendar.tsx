@@ -11,8 +11,9 @@ import {
 import { Treatment } from '../../types';
 import { getAllTreatments } from '../../lib/database';
 import { formatDateDisplay, daysAfterTreatment } from '../../lib/elapsed';
+import { t, tCategory } from '../../lib/i18n';
 
-const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
+const WEEKDAY_KEYS = ['weekdays.sun', 'weekdays.mon', 'weekdays.tue', 'weekdays.wed', 'weekdays.thu', 'weekdays.fri', 'weekdays.sat'];
 const NOW = new Date();
 const TODAY_YEAR  = NOW.getFullYear();
 const TODAY_MONTH = NOW.getMonth();
@@ -53,10 +54,10 @@ export default function CalendarScreen() {
 
   const treatmentByDate = useMemo(() => {
     const map = new Map<string, Treatment[]>();
-    treatments.forEach(t => {
-      const list = map.get(t.date) ?? [];
-      list.push(t);
-      map.set(t.date, list);
+    treatments.forEach(tr => {
+      const list = map.get(tr.date) ?? [];
+      list.push(tr);
+      map.set(tr.date, list);
     });
     return map;
   }, [treatments]);
@@ -70,10 +71,9 @@ export default function CalendarScreen() {
     else setMonth(m => m + 1);
   }
 
-  // 選択日以前の全施術を新しい順に表示
   const visibleTreatments = useMemo(() =>
     treatments
-      .filter(t => t.date <= selectedDate)
+      .filter(tr => tr.date <= selectedDate)
       .sort((a, b) => b.date.localeCompare(a.date)),
     [treatments, selectedDate],
   );
@@ -100,10 +100,10 @@ export default function CalendarScreen() {
             </View>
           </Pressable>
           <View style={styles.navButtons}>
-            <Pressable style={styles.navBtn} onPress={prevMonth} accessibilityLabel="前の月">
+            <Pressable style={styles.navBtn} onPress={prevMonth} accessibilityLabel={t('calendar.prev_month')}>
               <Feather name="chevron-left" size={14} color={COLORS.ink2} />
             </Pressable>
-            <Pressable style={styles.navBtn} onPress={nextMonth} accessibilityLabel="次の月">
+            <Pressable style={styles.navBtn} onPress={nextMonth} accessibilityLabel={t('calendar.next_month')}>
               <Feather name="chevron-right" size={14} color={COLORS.ink2} />
             </Pressable>
           </View>
@@ -111,12 +111,12 @@ export default function CalendarScreen() {
 
         {/* ── Weekday row ────────────────────────────────── */}
         <View style={styles.weekRow}>
-          {WEEKDAYS.map((d, i) => (
+          {WEEKDAY_KEYS.map((key, i) => (
             <Text
-              key={d}
+              key={key}
               style={[styles.weekDay, i === 0 && styles.sunday, i === 6 && styles.saturday]}
             >
-              {d}
+              {t(key)}
             </Text>
           ))}
         </View>
@@ -187,34 +187,34 @@ export default function CalendarScreen() {
           </View>
 
           {visibleTreatments.length > 0 ? (
-            visibleTreatments.map(t => {
-              const days = daysAfterTreatment(t.date, selectedDate);
+            visibleTreatments.map(tr => {
+              const days = daysAfterTreatment(tr.date, selectedDate);
               return (
                 <Pressable
-                  key={t.id}
+                  key={tr.id}
                   style={({ pressed }) => [styles.card, pressed && { opacity: 0.82 }]}
-                  onPress={() => router.push(`/treatment/${t.id}`)}
+                  onPress={() => router.push(`/treatment/${tr.id}`)}
                   accessibilityRole="button"
                 >
                   <LinearGradient
-                    colors={CATEGORY_GRADIENT[t.category] ?? CATEGORY_GRADIENT['その他']}
+                    colors={CATEGORY_GRADIENT[tr.category] ?? CATEGORY_GRADIENT['その他']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={styles.categoryTile}
                   />
                   <View style={styles.cardInfo}>
-                    <Text style={styles.cardName} numberOfLines={1}>{t.name}</Text>
+                    <Text style={styles.cardName} numberOfLines={1}>{tr.name}</Text>
                     <Text style={styles.cardSub} numberOfLines={1}>
-                      {t.clinic || t.category}
+                      {tCategory(tr.category)}{tr.clinic ? ` · ${tr.clinic}` : ''}
                     </Text>
                   </View>
                   <View style={styles.elapsedBadge}>
                     {days === 0 ? (
-                      <Text style={styles.elapsedDay}>当日</Text>
+                      <Text style={styles.elapsedDay}>{t('calendar.today')}</Text>
                     ) : (
                       <>
                         <Text style={styles.elapsedNum}>{days}</Text>
-                        <Text style={styles.elapsedUnit}>日目</Text>
+                        <Text style={styles.elapsedUnit}>{t('calendar.day_unit')}</Text>
                       </>
                     )}
                   </View>
@@ -222,7 +222,7 @@ export default function CalendarScreen() {
               );
             })
           ) : (
-            <Text style={styles.emptyText}>施術記録がありません</Text>
+            <Text style={styles.emptyText}>{t('calendar.empty')}</Text>
           )}
         </ScrollView>
       </SafeAreaView>
@@ -238,7 +238,7 @@ export default function CalendarScreen() {
         <View style={styles.yearOverlay}>
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setYearPickerVisible(false)} />
           <View style={styles.yearSheet}>
-            <Text style={styles.yearSheetTitle}>年を選ぶ</Text>
+            <Text style={styles.yearSheetTitle}>{t('calendar.year_title')}</Text>
             <View style={styles.yearGrid}>
               {YEAR_RANGE.map(y => {
                 const isActive = y === year;
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // Day circle — shared base for today, selected, regular
+  // Day circle
   dayCircle: {
     width: 34,
     height: 34,
@@ -338,7 +338,6 @@ const styles = StyleSheet.create({
   sunText:        { color: '#d28aa8' },
   satText:        { color: '#9a8ec5' },
 
-  // Dot — inside the circle so it's visually attached
   dot: {
     position: 'absolute',
     bottom: 4,

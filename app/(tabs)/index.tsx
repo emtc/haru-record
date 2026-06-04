@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
@@ -17,8 +19,9 @@ import { getElapsed } from '../../lib/elapsed';
 import CategoryChip from '../../components/CategoryChip';
 import TreatmentItem from '../../components/TreatmentItem';
 import { useSubscription } from '../../lib/subscriptionContext';
+import { t, tCategory } from '../../lib/i18n';
 
-const FILTERS: FilterCategory[] = ['すべて', '整形', '脱毛', 'スキンケア', '注入', 'その他'];
+const FILTER_KEYS: FilterCategory[] = ['すべて', '整形', '脱毛', 'スキンケア', '注入', 'その他'];
 
 export default function HomeScreen() {
   const { isPremium } = useSubscription();
@@ -26,8 +29,13 @@ export default function HomeScreen() {
   const [activeFilter, setActiveFilter] = useState<FilterCategory>('すべて');
   const [sortAsc, setSortAsc] = useState(false);
 
-  // Initialize DB once
   useEffect(() => { openDb(); }, []);
+
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      requestTrackingPermissionsAsync();
+    }
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -49,7 +57,6 @@ export default function HomeScreen() {
     <View style={styles.root}>
       <LinearGradient colors={BG_GRADIENT} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} />
       <SafeAreaView style={styles.safe} edges={['top']}>
-        {/* ロゴ行 — 右端に ☆/★（グラデーション●）で会員ステータスを表示 */}
         <View style={styles.logoRow}>
           <View style={styles.logoBlock}>
             <LinearGradient
@@ -61,10 +68,11 @@ export default function HomeScreen() {
             <Text style={styles.logoText}>haru record</Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            {/* DEV: オンボーディングプレビュー（確認後に削除） */}
-            <Pressable onPress={() => router.push('/onboarding')} hitSlop={12} style={styles.devBtn}>
-              <Text style={styles.devBtnText}>OB</Text>
-            </Pressable>
+            {__DEV__ && (
+              <Pressable onPress={() => router.push('/onboarding')} hitSlop={12} style={styles.devBtn}>
+                <Text style={styles.devBtnText}>OB</Text>
+              </Pressable>
+            )}
             {isPremium ? (
               <LinearGradient
                 colors={ACCENT_GRADIENT}
@@ -84,17 +92,16 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Category chips — always rendered to maintain stable layout */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.chipsScroll}
           contentContainerStyle={styles.chips}
         >
-          {FILTERS.map(f => (
+          {FILTER_KEYS.map(f => (
             <CategoryChip
               key={f}
-              label={f}
+              label={tCategory(f)}
               active={activeFilter === f}
               onPress={() => setActiveFilter(f)}
             />
@@ -104,27 +111,26 @@ export default function HomeScreen() {
         {isEmpty ? (
           <EmptyState />
         ) : (
-          /* 件数・ソートをリストと同じ ScrollView に入れて一体化 */
           <ScrollView
             style={styles.list}
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.yearRow}>
-              <Text style={styles.year}>全{filtered.length}件</Text>
+              <Text style={styles.year}>{t('home.count', { count: filtered.length })}</Text>
               <Pressable onPress={() => setSortAsc(v => !v)}>
-                <Text style={styles.sort}>{sortAsc ? '古い順 ↑' : '新しい順 ↓'}</Text>
+                <Text style={styles.sort}>{sortAsc ? t('home.sort_asc') : t('home.sort_desc')}</Text>
               </Pressable>
             </View>
             <View style={styles.listContent}>
               <View style={styles.rail} />
-              {filtered.map((t, i) => (
+              {filtered.map((tr, i) => (
                 <TreatmentItem
-                  key={t.id}
-                  treatment={t}
-                  elapsed={getElapsed(t.date)}
+                  key={tr.id}
+                  treatment={tr}
+                  elapsed={getElapsed(tr.date)}
                   isFirst={i === 0}
-                  onPress={() => router.push(`/treatment/${t.id}`)}
-                  photoUri={t.iconUri || undefined}
+                  onPress={() => router.push(`/treatment/${tr.id}`)}
+                  photoUri={tr.iconUri || undefined}
                 />
               ))}
             </View>
@@ -143,16 +149,14 @@ function EmptyState() {
       <LinearGradient colors={ACCENT_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.emptyIcon}>
         <View style={styles.emptyInner} />
       </LinearGradient>
-      <Text style={styles.emptyTitle}>最初の記録を、{'\n'}そっと残してみませんか。</Text>
-      <Text style={styles.emptySubtitle}>
-        施術日からの経過日数と写真を、{'\n'}haru-record が静かに見守ります。
-      </Text>
+      <Text style={styles.emptyTitle}>{t('home.empty_title')}</Text>
+      <Text style={styles.emptySubtitle}>{t('home.empty_subtitle')}</Text>
       <Pressable onPress={() => router.push('/add')}>
         <LinearGradient colors={ACCENT_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.emptyBtn}>
-          <Text style={styles.emptyBtnText}>＋ 施術を追加</Text>
+          <Text style={styles.emptyBtnText}>{t('home.empty_add')}</Text>
         </LinearGradient>
       </Pressable>
-      <Text style={styles.emptyHint}>あとからいつでも編集できます</Text>
+      <Text style={styles.emptyHint}>{t('home.empty_hint')}</Text>
     </View>
   );
 }

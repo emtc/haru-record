@@ -29,6 +29,7 @@ import { getElapsed, formatDateDisplay } from '../../lib/elapsed';
 import { generateId } from '../../lib/uuid';
 import ElapsedBadge from '../../components/ElapsedBadge';
 import { PhotoModal } from '../../components/PhotoModal';
+import { t, tCategory } from '../../lib/i18n';
 
 export default function TreatmentDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -44,8 +45,8 @@ export default function TreatmentDetail() {
   useFocusEffect(
     useCallback(() => {
       if (!id) return;
-      const t = getTreatmentById(id);
-      setTreatment(t);
+      const tr = getTreatmentById(id);
+      setTreatment(tr);
       setPhotos(getPhotosForTreatment(id));
     }, [id])
   );
@@ -125,10 +126,10 @@ export default function TreatmentDetail() {
 
   function handleDeleteTap() {
     setMenuVisible(false);
-    Alert.alert('記録を削除', 'この記録と写真をすべて削除しますか？', [
-      { text: 'キャンセル', style: 'cancel' },
+    Alert.alert(t('treatment.delete_title'), t('treatment.delete_message'), [
+      { text: t('treatment.delete_cancel'), style: 'cancel' },
       {
-        text: '削除', style: 'destructive', onPress: () => {
+        text: t('treatment.delete_confirm'), style: 'destructive', onPress: () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
           deleteTreatment(treatment!.id);
           router.back();
@@ -144,7 +145,6 @@ export default function TreatmentDetail() {
   const elapsed = getElapsed(treatment.date);
   const dateStr = formatDateDisplay(treatment.date);
 
-  // 同じ日の写真をまとめる
   const photoGroups = photos.reduce<{ date: string; label: string; items: TreatmentPhoto[] }[]>((acc, photo) => {
     const existing = acc.find(g => g.date === photo.date);
     if (existing) { existing.items.push(photo); }
@@ -158,11 +158,11 @@ export default function TreatmentDetail() {
       <SafeAreaView style={styles.safe} edges={['top']}>
         {/* Nav */}
         <View style={styles.nav}>
-          <Pressable style={styles.navBtn} onPress={() => router.back()} accessibilityLabel="戻る" accessibilityRole="button">
+          <Pressable style={styles.navBtn} onPress={() => router.back()} accessibilityRole="button">
             <Feather name="chevron-left" size={20} color={COLORS.ink2} />
           </Pressable>
           <View />
-          <Pressable style={styles.navBtn} onPress={() => setMenuVisible(true)} accessibilityLabel="メニュー" accessibilityRole="button">
+          <Pressable style={styles.navBtn} onPress={() => setMenuVisible(true)} accessibilityRole="button">
             <Feather name="more-horizontal" size={18} color={COLORS.ink2} />
           </Pressable>
         </View>
@@ -171,15 +171,13 @@ export default function TreatmentDetail() {
           {/* Title block */}
           <View style={styles.titleBlock}>
             <View style={styles.titleRow}>
-              {/* Icon */}
               <Pressable
                 onPress={handleIconPress}
                 style={styles.iconWrap}
-                accessibilityLabel="アイコン画像を変更"
                 accessibilityRole="button"
               >
                 {treatment.iconUri ? (
-                  <Image source={{ uri: treatment.iconUri }} style={styles.icon} accessibilityLabel={`${treatment.name}のアイコン`} />
+                  <Image source={{ uri: treatment.iconUri }} style={styles.icon} />
                 ) : (
                   <LinearGradient
                     colors={CATEGORY_GRADIENT[treatment.category] ?? CATEGORY_GRADIENT['その他']}
@@ -194,13 +192,12 @@ export default function TreatmentDetail() {
                 </View>
               </Pressable>
 
-              {/* Meta + name */}
               <View style={styles.titleInfo}>
-                <Text style={styles.metaText}>{dateStr} · {treatment.category}</Text>
+                <Text style={styles.metaText}>{dateStr} · {tCategory(treatment.category)}</Text>
                 <Text style={styles.treatmentName}>{treatment.name}</Text>
                 <View style={styles.clinicRow}>
                   <Feather name="map-pin" size={10} color={COLORS.ink2} />
-                  <Text style={styles.clinic}>{treatment.clinic || '記載なし'}</Text>
+                  <Text style={styles.clinic}>{treatment.clinic || t('treatment.clinic_none')}</Text>
                 </View>
               </View>
             </View>
@@ -212,15 +209,14 @@ export default function TreatmentDetail() {
 
           {/* Memo */}
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>メモ</Text>
+            <Text style={styles.sectionLabel}>{t('treatment.memo_label')}</Text>
             <Pressable
               onPress={() => { setEditingMemo(treatment.memo); setMemoModalVisible(true); }}
               style={({ pressed }) => [styles.memoCard, pressed && { opacity: 0.85 }]}
               accessibilityRole="button"
-              accessibilityLabel="メモを編集"
             >
               <Text style={[styles.memoText, !treatment.memo && styles.memoEmpty]}>
-                {treatment.memo || 'タップしてメモを追加'}
+                {treatment.memo || t('treatment.memo_empty')}
               </Text>
               <Feather name="edit-2" size={12} color={COLORS.ink2} style={styles.memoEditIcon} />
             </Pressable>
@@ -229,19 +225,19 @@ export default function TreatmentDetail() {
           {/* Photos */}
           <View style={styles.section}>
             <View style={styles.sectionRow}>
-              <Text style={styles.sectionLabel}>写真</Text>
+              <Text style={styles.sectionLabel}>{t('treatment.photos_label')}</Text>
               {photos.length > 0 && (
                 <Pressable style={styles.addPhotoPill} onPress={handleAddPhoto}>
-                  <Text style={styles.addPhotoPillText}>＋ 追加する</Text>
+                  <Text style={styles.addPhotoPillText}>{t('treatment.photos_add')}</Text>
                 </Pressable>
               )}
             </View>
 
             {photos.length === 0 ? (
               <View style={styles.emptyPhotos}>
-                <Text style={styles.emptyPhotosText}>写真がありません</Text>
+                <Text style={styles.emptyPhotosText}>{t('treatment.photos_empty')}</Text>
                 <Pressable style={styles.addPhotoPill} onPress={handleAddPhoto}>
-                  <Text style={styles.addPhotoPillText}>＋ 追加する</Text>
+                  <Text style={styles.addPhotoPillText}>{t('treatment.photos_add')}</Text>
                 </Pressable>
               </View>
             ) : (
@@ -264,13 +260,11 @@ export default function TreatmentDetail() {
                             style={styles.photoGridItem}
                             onPress={() => router.push({ pathname: '/photo-viewer', params: { treatmentId: treatment.id, photoIndex: startIdx + j } })}
                             accessibilityRole="button"
-                            accessibilityLabel={`${photo.label || '写真'} を表示`}
                           >
                             <Image
                               source={{ uri: photo.uri }}
                               style={styles.photoGridImg}
                               resizeMode="cover"
-                              accessibilityLabel={`${photo.label || '写真'}、${photo.date}`}
                             />
                           </Pressable>
                         ))}
@@ -293,7 +287,7 @@ export default function TreatmentDetail() {
           allowPhotoChange
           allowAddRemove
           maxPhotos={isPremium ? undefined : FREE_PHOTO_LIMIT - photos.length}
-          confirmLabel="追加する"
+          confirmLabel={t('treatment.photo_confirm')}
           onConfirm={handlePhotoConfirm}
           onCancel={() => setPendingUris([])}
         />
@@ -314,12 +308,12 @@ export default function TreatmentDetail() {
             style={styles.modalKav}
           >
             <View style={styles.modalSheet}>
-              <Text style={styles.modalTitle}>メモ</Text>
+              <Text style={styles.modalTitle}>{t('treatment.memo_modal_title')}</Text>
               <TextInput
                 style={styles.modalTextInput}
                 value={editingMemo}
                 onChangeText={setEditingMemo}
-                placeholder="ダウンタイムや経過の気づきを書き留める"
+                placeholder={t('treatment.memo_ph')}
                 placeholderTextColor={COLORS.ink3}
                 multiline
                 autoFocus
@@ -327,11 +321,11 @@ export default function TreatmentDetail() {
               />
               <View style={styles.modalButtons}>
                 <Pressable style={styles.modalCancelBtn} onPress={() => setMemoModalVisible(false)}>
-                  <Text style={styles.modalCancelText}>キャンセル</Text>
+                  <Text style={styles.modalCancelText}>{t('treatment.memo_cancel')}</Text>
                 </Pressable>
                 <Pressable style={styles.modalSaveBtn} onPress={handleMemoSave}>
                   <LinearGradient colors={ACCENT_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.modalSaveGradient}>
-                    <Text style={styles.modalSaveText}>保存する</Text>
+                    <Text style={styles.modalSaveText}>{t('treatment.memo_save')}</Text>
                   </LinearGradient>
                 </Pressable>
               </View>
@@ -356,15 +350,15 @@ export default function TreatmentDetail() {
               onPress={() => { setIconMenuVisible(false); pickIcon(); }}
             >
               <Feather name="image" size={16} color={COLORS.purple} />
-              <Text style={styles.actionText}>変更する</Text>
+              <Text style={styles.actionText}>{t('treatment.icon_change')}</Text>
             </Pressable>
             <View style={styles.actionDivider} />
             <Pressable style={styles.actionRow} onPress={handleIconDelete}>
               <Feather name="trash-2" size={16} color={COLORS.pink} />
-              <Text style={[styles.actionText, styles.actionTextDanger]}>削除する</Text>
+              <Text style={[styles.actionText, styles.actionTextDanger]}>{t('treatment.icon_delete')}</Text>
             </Pressable>
             <Pressable style={styles.actionCancelRow} onPress={() => setIconMenuVisible(false)}>
-              <Text style={styles.actionCancelText}>キャンセル</Text>
+              <Text style={styles.actionCancelText}>{t('treatment.icon_cancel')}</Text>
             </Pressable>
           </View>
         </View>
@@ -389,15 +383,15 @@ export default function TreatmentDetail() {
               }}
             >
               <Feather name="edit-2" size={16} color={COLORS.purple} />
-              <Text style={styles.actionText}>記録を編集</Text>
+              <Text style={styles.actionText}>{t('treatment.action_edit')}</Text>
             </Pressable>
             <View style={styles.actionDivider} />
             <Pressable style={styles.actionRow} onPress={handleDeleteTap}>
               <Feather name="trash-2" size={16} color={COLORS.pink} />
-              <Text style={[styles.actionText, styles.actionTextDanger]}>記録を削除</Text>
+              <Text style={[styles.actionText, styles.actionTextDanger]}>{t('treatment.action_delete')}</Text>
             </Pressable>
             <Pressable style={styles.actionCancelRow} onPress={() => setMenuVisible(false)}>
-              <Text style={styles.actionCancelText}>キャンセル</Text>
+              <Text style={styles.actionCancelText}>{t('treatment.action_cancel')}</Text>
             </Pressable>
           </View>
         </View>
