@@ -8,6 +8,7 @@ import { Feather } from '@expo/vector-icons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ACCENT_GRADIENT, COLORS } from '../../constants/theme';
 import { t } from '../../lib/i18n';
+import { calendarState } from '../../lib/calendarState';
 
 const FAB_SIZE = 58;
 const FAB_PROTRUDE = 22;
@@ -41,7 +42,10 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
               {isRight && (
                 <View style={styles.fabSlot}>
                   <Pressable
-                    onPress={() => router.push('/add')}
+                    onPress={() => {
+                      const date = currentRoute === 'calendar' ? calendarState.selectedDate : undefined;
+                      router.push(date ? { pathname: '/add', params: { date } } : '/add');
+                    }}
                     accessibilityLabel={t('tabs.add_label')}
                     accessibilityRole="button"
                     style={({ pressed }) => [styles.fabRing, pressed && { opacity: 0.82 }]}

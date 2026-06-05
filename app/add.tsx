@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Image,
@@ -35,9 +35,10 @@ type PhotoDraft = { uri: string; label: string; caption: string; date: string };
 export default function AddScreen() {
   const insets = useSafeAreaInsets();
   const { isPremium } = useSubscription();
+  const { date: paramDate } = useLocalSearchParams<{ date?: string }>();
   const [category, setCategory] = useState<Category>('脱毛');
   const [name, setName] = useState('');
-  const [date, setDate] = useState(todayString());
+  const [date, setDate] = useState(paramDate ?? todayString());
   const [clinic, setClinic] = useState('');
   const [memo, setMemo] = useState('');
   const [photos, setPhotos] = useState<PhotoDraft[]>([]);

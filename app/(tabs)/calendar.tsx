@@ -12,6 +12,7 @@ import { Treatment } from '../../types';
 import { getAllTreatments } from '../../lib/database';
 import { formatDateDisplay, daysAfterTreatment } from '../../lib/elapsed';
 import { t, tCategory } from '../../lib/i18n';
+import { calendarState } from '../../lib/calendarState';
 
 const WEEKDAY_KEYS = ['weekdays.sun', 'weekdays.mon', 'weekdays.tue', 'weekdays.wed', 'weekdays.thu', 'weekdays.fri', 'weekdays.sat'];
 const NOW = new Date();
@@ -38,7 +39,10 @@ export default function CalendarScreen() {
   const [year, setYear]                     = useState(TODAY_YEAR);
   const [month, setMonth]                   = useState(TODAY_MONTH);
   const [treatments, setTreatments]         = useState<Treatment[]>(() => getAllTreatments());
-  const [selectedDate, setSelectedDate]     = useState(TODAY_KEY);
+  const [selectedDate, setSelectedDate]     = useState(() => {
+    calendarState.selectedDate = TODAY_KEY;
+    return TODAY_KEY;
+  });
   const [yearPickerVisible, setYearPickerVisible] = useState(false);
   const isFirstFocus = useRef(true);
 
@@ -133,7 +137,7 @@ export default function CalendarScreen() {
             const col          = i % 7;
 
             return (
-              <Pressable key={key} style={styles.cell} onPress={() => setSelectedDate(key)}>
+              <Pressable key={key} style={styles.cell} onPress={() => { setSelectedDate(key); calendarState.selectedDate = key; }}>
                 {isToday ? (
                   <LinearGradient
                     colors={ACCENT_GRADIENT}
