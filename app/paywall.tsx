@@ -38,6 +38,10 @@ export default function PaywallScreen() {
   const yearlyPkg   = offerings?.current?.annual;
   const selectedPkg = plan === 'yearly' ? yearlyPkg : monthlyPkg;
 
+  const yearlyPrice    = yearlyPkg?.product?.priceString  ?? t('paywall.yearly_price');
+  const monthlyPrice   = monthlyPkg?.product?.priceString ?? t('paywall.monthly_price');
+  const yearlyPerMonth = yearlyPkg?.product?.pricePerMonthString ?? null;
+
   const compareRows = [
     { feature: t('paywall.row_records'), free: t('paywall.free_records'), premium: t('paywall.premium_records') },
     { feature: t('paywall.row_photos'),  free: t('paywall.free_photos'),  premium: t('paywall.premium_photos')  },
@@ -149,8 +153,10 @@ export default function PaywallScreen() {
               <Text style={styles.recommendText}>20% OFF</Text>
             </View>
             <Text style={[styles.planLabel, plan === 'yearly' && styles.planLabelActive]}>{t('paywall.yearly_label')}</Text>
-            <Text style={[styles.planPrice, plan === 'yearly' && styles.planPriceActive]}>{t('paywall.yearly_price')}</Text>
-            <Text style={[styles.planSub,   plan === 'yearly' && styles.planSubActive]}>{t('paywall.yearly_per_month')}</Text>
+            <Text style={[styles.planPrice, plan === 'yearly' && styles.planPriceActive]}>{yearlyPrice}</Text>
+            {yearlyPerMonth && (
+              <Text style={[styles.planSub, plan === 'yearly' && styles.planSubActive]}>{t('paywall.yearly_per_month', { price: yearlyPerMonth })}</Text>
+            )}
           </Pressable>
 
           {/* Monthly */}
@@ -159,7 +165,7 @@ export default function PaywallScreen() {
             onPress={() => setPlan('monthly')}
           >
             <Text style={[styles.planLabel, plan === 'monthly' && styles.planLabelActive]}>{t('paywall.monthly_label')}</Text>
-            <Text style={[styles.planPrice, plan === 'monthly' && styles.planPriceActive]}>{t('paywall.monthly_price')}</Text>
+            <Text style={[styles.planPrice, plan === 'monthly' && styles.planPriceActive]}>{monthlyPrice}</Text>
             <Text style={[styles.planSub,   plan === 'monthly' && styles.planSubActive]}>{t('paywall.monthly_sub')}</Text>
           </Pressable>
         </View>
@@ -175,7 +181,9 @@ export default function PaywallScreen() {
             {loading
               ? <ActivityIndicator color="#fff" />
               : <Text style={styles.ctaText}>
-                  {plan === 'yearly' ? t('paywall.cta_yearly') : t('paywall.cta_monthly')}
+                  {plan === 'yearly'
+                    ? t('paywall.cta_yearly',  { price: yearlyPrice })
+                    : t('paywall.cta_monthly', { price: monthlyPrice })}
                 </Text>
             }
           </LinearGradient>
